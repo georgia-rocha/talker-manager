@@ -13,8 +13,12 @@ const readTalkerFile = async () => {
 };
 
 const getAllTalker = async () => {
+  try {
     const talker = await readTalkerFile();
     return talker;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const getTalkerById = async (id) => {
@@ -22,7 +26,20 @@ const getTalkerById = async (id) => {
     return talker.find((user) => user.id === id);
 };
 
+const writeTalkerFile = async (content) => {
+  try {
+    const allTalkers = await getAllTalker();
+    const newTalkers = [...allTalkers, content];
+    const completePath = join(__dirname, path);
+    await fs.writeFile(completePath, JSON.stringify(newTalkers));
+  } catch (error) {
+    console.error('Erro ao salvar o arquivo', error.message);
+    return null;
+  }
+};
+
 module.exports = {
     getAllTalker,
     getTalkerById,
+    writeTalkerFile,
 };

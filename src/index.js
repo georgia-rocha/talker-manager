@@ -1,6 +1,11 @@
 const express = require('express');
 const generateToken = require('./utils/generateToken');
 const { validateEmail, validatePassword } = require('./middlewares/validateLogin');
+const { validateTalkWatchedAt, valideteTalkRate } = require('./middlewares/validateTalk');
+const { auth } = require('./middlewares/auth');
+const { validateAge } = require('./middlewares/validateAge');
+const { validateName } = require('./middlewares/validateName');
+const { writeTalkerFile } = require('./talker');
 
 const app = express();
 app.use(express.json());
@@ -34,6 +39,23 @@ app.post('/login', validateEmail, validatePassword, (req, res) => {
   }
   const token = generateToken();
   return res.status(200).json({ token });
+});
+
+app.post('/talker',
+validateTalkWatchedAt,
+valideteTalkRate,
+auth,
+validateAge,
+validateName,
+async (req, res) => {
+  try {
+    const data = await talker.getAllTalker();
+    const newTalker = { id: data.length + 1, ...req.body };
+    await writeTalkerFile(newTalker);
+    return res.status(201).json(newTalker);
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 app.listen(PORT, () => {
