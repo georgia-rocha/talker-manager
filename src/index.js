@@ -1,5 +1,6 @@
 const express = require('express');
 const generateToken = require('./utils/generateToken');
+const { validateEmail, validatePassword } = require('./middlewares/validateLogin');
 
 const app = express();
 app.use(express.json());
@@ -25,7 +26,7 @@ app.get('/talker/:id', async (req, res) => {
   res.status(HTTP_OK_STATUS).json(data);
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', validateEmail, validatePassword, (req, res) => {
   const { email, password } = req.body;
 
   if ([email, password].includes(undefined)) {
