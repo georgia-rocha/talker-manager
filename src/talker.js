@@ -26,7 +26,7 @@ const getTalkerById = async (id) => {
     return talker.find((user) => user.id === id);
 };
 
-const writeTalkerFile = async (content) => {
+const addTalker = async (content) => {
   try {
     const allTalkers = await getAllTalker();
     const newTalkers = [...allTalkers, content];
@@ -38,8 +38,23 @@ const writeTalkerFile = async (content) => {
   }
 };
 
+const updateTalker = async (id, update) => {
+  const talkers = await readTalkerFile();
+  const talkerFound = talkers.find((talker) => talker.id === id);
+  if (!talkerFound) {
+    return false;
+  }
+  const newTalker = { ...talkerFound, ...update };
+  talkers[talkerFound.id - 1] = { ...newTalker };
+  console.log(talkers);
+  const completePath = join(__dirname, path);
+  await fs.writeFile(completePath, JSON.stringify(talkers));
+  return newTalker;
+};
+
 module.exports = {
     getAllTalker,
     getTalkerById,
-    writeTalkerFile,
+    addTalker,
+    updateTalker,
 };
