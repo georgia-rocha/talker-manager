@@ -5,7 +5,7 @@ const { validateTalkWatchedAt, valideteTalkRate } = require('./middlewares/valid
 const { auth } = require('./middlewares/auth');
 const { validateAge } = require('./middlewares/validateAge');
 const { validateName } = require('./middlewares/validateName');
-const { addTalker, updateTalker } = require('./talker');
+const { addTalker, updateTalker, deleteTalker, getAllTalker } = require('./talker');
 
 const app = express();
 app.use(express.json());
@@ -49,7 +49,7 @@ validateAge,
 validateName,
 async (req, res) => {
   try {
-    const data = await talker.getAllTalker();
+    const data = await getAllTalker();
     const newTalker = { id: data.length + 1, ...req.body };
     await addTalker(newTalker);
     return res.status(201).json(newTalker);
@@ -65,7 +65,6 @@ auth,
 validateAge,
 validateName,
 async (req, res) => {
-  console.log(req.params);
   const { id } = req.params;
   const { name, age, talk } = req.body;
   const updatedTalker = await updateTalker(Number(id), { name, age, talk });
@@ -73,6 +72,15 @@ async (req, res) => {
   if (!updatedTalker) return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
   
   return res.status(200).json(updatedTalker);
+});
+
+app.delete('/talker/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  const talkerDeleted = await deleteTalker(id);
+  if (!talkerDeleted) {
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+  }
+  return res.status(204).end();
 });
 
 app.listen(PORT, () => {

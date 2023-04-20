@@ -52,9 +52,23 @@ const updateTalker = async (id, update) => {
   return newTalker;
 };
 
+const deleteTalker = async (id) => {
+  const talkers = await readTalkerFile();
+  const talkerFound = talkers.findIndex((talker) => talker.id === Number(id));
+  console.log(talkerFound);
+  if (talkerFound === undefined) {
+    return false;
+  }
+  talkers.splice(talkerFound, 1);
+  const completePath = join(__dirname, path);
+  await fs.writeFile(completePath, JSON.stringify(talkers));
+  return true;
+};
+
 module.exports = {
     getAllTalker,
     getTalkerById,
     addTalker,
     updateTalker,
+    deleteTalker,
 };
