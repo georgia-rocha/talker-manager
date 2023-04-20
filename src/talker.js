@@ -26,6 +26,13 @@ const getTalkerById = async (id) => {
     return talker.find((user) => user.id === id);
 };
 
+const findTalkerByName = async (query) => {
+  const talkers = await getAllTalker();
+
+  if (query === undefined) return [];
+  return talkers.filter((talker) => talker.name.toLowerCase().includes(query.toLowerCase()));
+};
+
 const addTalker = async (content) => {
   try {
     const allTalkers = await getAllTalker();
@@ -71,4 +78,5 @@ module.exports = {
     addTalker,
     updateTalker,
     deleteTalker,
+    findTalkerByName,
 };
