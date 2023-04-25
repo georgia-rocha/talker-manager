@@ -1,5 +1,6 @@
 const express = require('express');
 const generateToken = require('./utils/generateToken');
+const { validateWatchedAt, validateRate } = require('./utils/validateQuery');
 const { validateEmail, validatePassword } = require('./middlewares/validateLogin');
 const { validateTalkWatchedAt, valideteTalkRate } = require('./middlewares/validateTalk');
 const { auth } = require('./middlewares/auth');
@@ -9,7 +10,8 @@ const { addTalker,
   updateTalker,
   deleteTalker,
   getAllTalker,
-  findTalkerByName } = require('./talker');
+  findTalker,
+  talkerPatch } = require('./talker');
 
 const app = express();
 app.use(express.json());
@@ -28,10 +30,12 @@ app.get('/talker', async (req, res) => {
   res.status(HTTP_OK_STATUS).json(data);
 });
 
-app.get('/talker/search', auth, async (req, res) => {
-  const { q } = req.query;
-  const talkerWanted = await findTalkerByName(q);
-  
+app.get('/talker/search', auth, validateWatchedAt,
+validateRate, async (req, res) => {
+  const { q, rate, date } = req.query;
+
+  const talkerWanted = await findTalker(q, Number(rate), date);
+
   return res.status(HTTP_OK_STATUS).json(talkerWanted);
 });
 
@@ -40,6 +44,14 @@ app.get('/talker/:id', async (req, res) => {
   const data = await talker.getTalkerById(Number(id));
   if (!data) return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
   return res.status(HTTP_OK_STATUS).json(data);
+});
+
+app.patch('/talker/rate/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  const { rate } = req.body;
+
+  const talkers = await talkerPatch(id, rate);
+  return res.statusCode(204).json(talkers);
 });
 
 app.post('/login', validateEmail, validatePassword, (req, res) => {

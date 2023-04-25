@@ -4,12 +4,12 @@ const { join } = require('path');
 const path = '/talker.json';
 
 const readTalkerFile = async () => {
-    try {
-      const contentFile = await fs.readFile(join(__dirname, path), 'utf-8');
-      return JSON.parse(contentFile);
-    } catch (error) {
-      return null;
-    }
+  try {
+    const contentFile = await fs.readFile(join(__dirname, path), 'utf-8');
+    return JSON.parse(contentFile);
+  } catch (error) {
+    return null;
+  }
 };
 
 const getAllTalker = async () => {
@@ -22,15 +22,48 @@ const getAllTalker = async () => {
 };
 
 const getTalkerById = async (id) => {
-    const talker = await readTalkerFile();
-    return talker.find((user) => user.id === id);
+  const talker = await readTalkerFile();
+  return talker.find((user) => user.id === id);
 };
 
-const findTalkerByName = async (query) => {
+const findTalker = async (q, rate, date) => {
+  const talkers = await getAllTalker();
+  let talkersByQuery = talkers;
+
+  if (q) {
+    talkersByQuery = talkersByQuery
+      .filter((talk) => talk.name.toLowerCase().includes(q.toLowerCase()));
+  }
+
+  if (rate) {
+    talkersByQuery = talkersByQuery.filter((talk) => talk.talk.rate === rate);
+  }
+
+  if (date) {
+    talkersByQuery = talkersByQuery.filter((talk) => talk.talk.watchedAt === date);
+  }
+  return talkersByQuery;
+};
+
+const talkerPatch = async (id, rate) => {
   const talkers = await getAllTalker();
 
-  if (query === undefined) return [];
-  return talkers.filter((talker) => talker.name.toLowerCase().includes(query.toLowerCase()));
+  const filteredTalkers = talkers.filter((talk) => talk.id === Number(id));
+  const update = filteredTalkers[0];
+  update.talk.rate = rate;
+
+  const newTalkers = talkers.reduce((talkersList, currentTalker) => {
+    if (currentTalker.id === Number(id)) return [...talkersList, update];
+    return [...talkersList, currentTalker];
+  }, []);
+
+  const newData = JSON.stringify(newTalkers);
+  try {
+    await fs.writeFile(path.resolve(__dirname, path), newData);
+   // return console.log(update);
+  } catch (error) {
+   // console.error(`Erro na escrita do arquivo: ${error}`);
+  }
 };
 
 const addTalker = async (content) => {
@@ -73,10 +106,11 @@ const deleteTalker = async (id) => {
 };
 
 module.exports = {
-    getAllTalker,
-    getTalkerById,
-    addTalker,
-    updateTalker,
-    deleteTalker,
-    findTalkerByName,
+  getAllTalker,
+  getTalkerById,
+  addTalker,
+  updateTalker,
+  deleteTalker,
+  findTalker,
+  talkerPatch,
 };
