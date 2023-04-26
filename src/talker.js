@@ -45,27 +45,6 @@ const findTalker = async (q, rate, date) => {
   return talkersByQuery;
 };
 
-const talkerPatch = async (id, rate) => {
-  const talkers = await getAllTalker();
-
-  const filteredTalkers = talkers.filter((talk) => talk.id === Number(id));
-  const update = filteredTalkers[0];
-  update.talk.rate = rate;
-
-  const newTalkers = talkers.reduce((talkersList, currentTalker) => {
-    if (currentTalker.id === Number(id)) return [...talkersList, update];
-    return [...talkersList, currentTalker];
-  }, []);
-
-  const newData = JSON.stringify(newTalkers);
-  try {
-    await fs.writeFile(path.resolve(__dirname, path), newData);
-   // return console.log(update);
-  } catch (error) {
-   // console.error(`Erro na escrita do arquivo: ${error}`);
-  }
-};
-
 const addTalker = async (content) => {
   try {
     const allTalkers = await getAllTalker();
@@ -79,17 +58,32 @@ const addTalker = async (content) => {
 };
 
 const updateTalker = async (id, update) => {
-  const talkers = await readTalkerFile();
-  const talkerFound = talkers.find((talker) => talker.id === id);
-  if (!talkerFound) {
-    return false;
+  try {
+    const talkers = await readTalkerFile();
+    const talkerFound = talkers.find((talker) => talker.id === id);
+    console.log(talkerFound);
+    if (!talkerFound) {
+      return false;
+    }
+    const newTalker = { ...talkerFound, ...update };
+    talkers[talkerFound.id - 1] = { ...newTalker };
+    const completePath = join(__dirname, path);
+    await fs.writeFile(completePath, JSON.stringify(talkers));
+    return newTalker;
+  } catch (e) {
+    console.error(e);
   }
-  const newTalker = { ...talkerFound, ...update };
-  talkers[talkerFound.id - 1] = { ...newTalker };
-  console.log(talkers);
-  const completePath = join(__dirname, path);
-  await fs.writeFile(completePath, JSON.stringify(talkers));
-  return newTalker;
+};
+
+const talkerPatch = async (id, rate) => {
+  const talkers = await getAllTalker();
+
+  const filteredTalkers = talkers.find((talk) => talk.id === Number(id));
+  
+  filteredTalkers.talk.rate = rate;
+  delete filteredTalkers.id;
+
+  await updateTalker(Number(id), filteredTalkers);
 };
 
 const deleteTalker = async (id) => {

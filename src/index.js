@@ -1,6 +1,6 @@
 const express = require('express');
 const generateToken = require('./utils/generateToken');
-const { validateWatchedAt, validateRate } = require('./utils/validateQuery');
+const { validateWatchedAt, validateRate, validetedRate } = require('./utils/validateQuery');
 const { validateEmail, validatePassword } = require('./middlewares/validateLogin');
 const { validateTalkWatchedAt, valideteTalkRate } = require('./middlewares/validateTalk');
 const { auth } = require('./middlewares/auth');
@@ -46,12 +46,12 @@ app.get('/talker/:id', async (req, res) => {
   return res.status(HTTP_OK_STATUS).json(data);
 });
 
-app.patch('/talker/rate/:id', auth, async (req, res) => {
+app.patch('/talker/rate/:id', auth, validetedRate, async (req, res) => {
   const { id } = req.params;
   const { rate } = req.body;
 
   const talkers = await talkerPatch(id, rate);
-  return res.statusCode(204).json(talkers);
+  return res.status(204).json(talkers);
 });
 
 app.post('/login', validateEmail, validatePassword, (req, res) => {
