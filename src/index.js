@@ -6,6 +6,7 @@ const { validateTalkWatchedAt, valideteTalkRate } = require('./middlewares/valid
 const { auth } = require('./middlewares/auth');
 const { validateAge } = require('./middlewares/validateAge');
 const { validateName } = require('./middlewares/validateName');
+const connection = require('./connection');
 const { addTalker,
   updateTalker,
   deleteTalker,
@@ -37,6 +38,21 @@ validateRate, async (req, res) => {
   const talkerWanted = await findTalker(q, Number(rate), date);
 
   return res.status(HTTP_OK_STATUS).json(talkerWanted);
+});
+
+app.get('/talker/db', async (_req, res) => {
+  try {
+    const [result] = await connection.execute('SELECT * FROM talkers');
+    const data = [];
+    result.forEach((e) => {
+      const { name, age, id } = e; 
+      data.push({ id, name, age, talk: { watchedAt: e.talk_watched_at, rate: e.talk_rate } });
+    });
+    return res.status(HTTP_OK_STATUS).json(data);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ message: e.sqlMessage });
+  }
 });
 
 app.get('/talker/:id', async (req, res) => {
@@ -106,6 +122,10 @@ app.delete('/talker/:id', auth, async (req, res) => {
   return res.status(204).end();
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  const [result] = await connection.execute('SELECT 1');
+  if (result) {
+    console.log('MySQL connection OK');
+  }
   console.log('Online');
 });
